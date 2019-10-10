@@ -2,7 +2,7 @@
   "name": "cpp-build",
   "version": "0.0.1",
   "description": "An easy to use and powerful C++ build system.",
-  "main": "main.js",
+  "main": "src/Main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
