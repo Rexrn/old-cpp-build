@@ -6,7 +6,7 @@ const path = require('path');
 
 
 module.exports = {
-	generateFromTargetTemplate: function(generator, template)
+	generateFromTargetTemplate(generator, template)
 	{
 		try {
 			validateTarget(template);
