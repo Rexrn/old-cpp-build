@@ -25,7 +25,7 @@ class MinGWMakefilesGenerator extends Generator
 				fs.mkdirSync( child.name );
 				process.chdir( child.name );
 				
-				this.generate(target);
+				this.generate(child);
 
 				process.chdir(prevWorkingDir);
 			}
@@ -85,8 +85,6 @@ class MinGWMakefilesGenerator extends Generator
 				fileContents += libsStr + '\n';
 				fileContents += mainTargetStr[0] + '\n' + mainTargetStr[1];
 				fileContents += srcFilesStr;
-
-				// fileContents += `\t${this.config.cppCompiler} ${incDirsStr} ${srcFilesStr} ${libsStr} -o ${target.name}`;
 			}
 		}
 		
