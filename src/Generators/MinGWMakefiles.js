@@ -16,6 +16,8 @@ class MinGWMakefilesGenerator extends Generator
 		let fileName = this.getBuildFileNameForTarget(target.name);
 		let fileContents = "";
 
+		fileContents += "all:\n"
+
 		// Prepare build command:
 		{
 			let incDirsStr = "";
@@ -31,7 +33,7 @@ class MinGWMakefilesGenerator extends Generator
 			if ( Array.isArray(target.linkedLibraries) )
 				libsStr = this.prepareLinkedLibraries(target.linkedLibraries);
 
-			fileContents += `${this.config.cppCompiler} ${incDirsStr} ${srcFilesStr} ${libsStr} -o ${target.name}`;
+			fileContents += `\t${this.config.cppCompiler} ${incDirsStr} ${srcFilesStr} ${libsStr} -o ${target.name}`;
 		}
 		
 		// Write build file:
@@ -40,9 +42,16 @@ class MinGWMakefilesGenerator extends Generator
 		console.log(`Build file written to: "${fileName}"`)
 	}
 
+	getBuildCommand() {
+		return {
+				workingDirectory: ".",
+				command: this.config.makeProgram || "make"
+			};
+	}
+
 	getBuildFileNameForTarget(targetName)
 	{
-		return `build-${targetName}.` + (process.platform == 'win32' ? 'bat' : 'sh');
+		return `Makefile`;
 	}
 
 	prepareIncludeDirs(dirs)

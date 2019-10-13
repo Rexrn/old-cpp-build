@@ -22,7 +22,7 @@ module.exports = {
             throw `could not load and execute target script ("${cbConfig.targetScript}"): ${e}`;
         }
 
-        console.log(`# Running build process for "${cbConfig.generator.name}"`);
+        console.log(`# Running build process`);
         if (cbConfig.configure)
             this.executeCommand("configure", target, cbConfig);
         if (cbConfig.generate)
@@ -46,15 +46,23 @@ module.exports = {
             case "generate":
                 // load configuration (call configure if config not exists)
                 // generate build files
-                let generationConfig = cfgStep.configure();
-                generationConfig.targetScriptDirectory = path.dirname( path.resolve(process.cwd(), cbConfig.targetScript) );
-                let generator = new cbConfig.generator.impl(generationConfig);
-                genStep.generate(target, generator);
+                {
+                    let generationConfig = cfgStep.configure();
+                    generationConfig.targetScriptDirectory = path.dirname( path.resolve(process.cwd(), cbConfig.targetScript) );
+                    let generator = new cbConfig.generator.impl(generationConfig);
+                    genStep.generate(target, generator);
+                }
                 break;
 
             case "build":
                 // TODO: load "generate_result.json"
-                buildStep.build(target, new cbConfig.generator.impl());
+                {
+                    let generationConfig = cfgStep.configure();
+                    generationConfig.targetScriptDirectory = path.dirname( path.resolve(process.cwd(), cbConfig.targetScript) );
+                    let generator = new cbConfig.generator.impl(generationConfig);
+                    
+                    buildStep.build(target, generator);
+                }
                 break;
                 
             case "install":

@@ -21,8 +21,14 @@ module.exports = {
 	{
 		console.log(`# Building target "${template.name}"`);
 
-		let buildFile = generator.getBuildFileNameForTarget(template.name);
-		let buildProcess = child_process.spawn(`.${path.sep}${buildFile}`);
+		let buildCommand = generator.getBuildCommand();
+
+		let buildProcess = child_process.spawn(buildCommand.command,
+				{
+					cwd: buildCommand.workingDirectory || '.'
+				}
+			);
+
 		buildProcess.stdout.on('data', function(data) {
 				console.log(data.toString());
 			});
