@@ -22,11 +22,11 @@ class MinGWMakefilesGenerator extends Generator
 			let prevWorkingDir = process.cwd();
 			for(let child of target.targets)
 			{
-				fs.mkdirSync( child.name );
-				process.chdir( child.name );
+				if (!fs.existsSync(child.name))
+					fs.mkdirSync( child.name );
 				
+				process.chdir( child.name );
 				this.generate(child);
-
 				process.chdir(prevWorkingDir);
 			}
 		}
