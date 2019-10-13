@@ -13,4 +13,4 @@ class Generator
 	getBuildFileNameForTarget(targetName) { return targetName; }
 };
 
-module.exports = Generator;
+module.exports = { Generator };

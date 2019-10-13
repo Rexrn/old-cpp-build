@@ -1,4 +1,8 @@
-module.exports = {
-	Generator: require('./Generator.js'),
-	MinGWMakefilesGenerator: require('./MinGWMakefiles.js')
-}
+let generators = {};
+
+Object.assign(generators,
+		require('./Generator.js'),
+		require('./MinGWMakefiles.js')
+	);
+
+module.exports = generators;

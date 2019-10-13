@@ -1,4 +1,3 @@
-const MinGWMakefilesGenerator = require('../Generators/MinGWMakefiles.js');
 const { validateTarget } = require('../Common/TargetValidation.js');
 
 const child_process = require('child_process');
@@ -31,6 +30,9 @@ module.exports = {
 
 		buildProcess.stdout.on('data', function(data) {
 				console.log(data.toString());
+			});
+		buildProcess.stderr.on('data', function(data) {
+				console.error(data.toString());
 			});
 		buildProcess.on('close', function(code, signal) {
 				let result = (code === 0) ? 'success' : 'failure/unknown'
