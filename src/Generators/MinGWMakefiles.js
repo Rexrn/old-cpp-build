@@ -1,8 +1,14 @@
 const Generator = require('./Generator.js');
 const fs = require('fs');
+const path = require("path");
 
-class GCCGenerator extends Generator
+class MinGWMakefilesGenerator extends Generator
 {
+	constructor(config = {})
+	{
+		super(config);
+	}
+
 	generate(target)
 	{
 		console.log(`# Generating build file for target "${target.name}"`)
@@ -25,13 +31,13 @@ class GCCGenerator extends Generator
 			if ( Array.isArray(target.linkedLibraries) )
 				libsStr = this.prepareLinkedLibraries(target.linkedLibraries);
 
-			fileContents += `g++ ${incDirsStr} ${srcFilesStr} ${libsStr} -o ${target.name}`;
+			fileContents += `${this.config.cppCompiler} ${incDirsStr} ${srcFilesStr} ${libsStr} -o ${target.name}`;
 		}
 		
 		// Write build file:
 		fs.writeFileSync(fileName, fileContents);
 
-		console.log(`Build file written to: "${fileName}" ===`)
+		console.log(`Build file written to: "${fileName}"`)
 	}
 
 	getBuildFileNameForTarget(targetName)
@@ -46,6 +52,7 @@ class GCCGenerator extends Generator
 		{
 			if (typeof dir == 'string')
 			{
+				dir = path.resolve( this.config.targetScriptDirectory, dir );
 				str += `-I"${dir}" `
 			}
 			else {
@@ -80,6 +87,7 @@ class GCCGenerator extends Generator
 			{
 				if (file.endsWith(".cpp") || file.endsWith(".c") || file.endsWith(".cc") || file.endsWith(".cxx"))
 				{
+					file = path.resolve( this.config.targetScriptDirectory, file );
 					str += `"${file}" `
 				}
 			}
@@ -92,4 +100,4 @@ class GCCGenerator extends Generator
 };
 
 
-module.exports = GCCGenerator;
+module.exports = MinGWMakefilesGenerator;

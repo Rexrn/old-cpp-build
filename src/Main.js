@@ -1,13 +1,11 @@
 let cppBuild = {};
 
 Object.assign(cppBuild,
-		{
-			version: '0.0.1',
-		},
-		require('./Generators.js'),
+		require('./Generators'),
 		require('./Commands'),
+		require('./Common'),
 		{
-			util: require('./Utility.js')
+			util: require('./Utility')
 		}
 	);
 

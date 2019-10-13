@@ -1,4 +1,4 @@
-const GCCGenerator = require('../Generators/GCC.js');
+const MinGWMakefilesGenerator = require('../Generators/MinGWMakefiles.js');
 const { validateTarget } = require('../Common/TargetValidation.js');
 
 const child_process = require('child_process');
@@ -12,8 +12,7 @@ module.exports = {
 			validateTarget(template);
 		}
 		catch(e) {
-			console.error(`Target validation failed: ${e}`);
-			return false;
+			throw `target validation failed: ${e}`;
 		}
 		generator.generate(template);
 	},
@@ -37,11 +36,5 @@ module.exports = {
 	{
 		this.generateFromTargetTemplate(generator, template);
 		this.buildForGenerator(generator, template);
-	},
-	
-	// Simplified build function
-	build(template) {
-		let generator = new GCCGenerator();
-		this.generateAndBuildFromTemplate(generator, template);
 	}
 };
