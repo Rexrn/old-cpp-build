@@ -81,10 +81,10 @@ What you can do with **cpp-build**:
 
 1. Write your code
 2. Tell **cpp-build** how your project is organised
-3. Build project on any platform using any tool[\*](#limitations)
+3. Build project on any platform using any tool\*
 
-<small id="limitations">* - compiler or tool must be supported by
-**cpp-build** and be able to build your code.</small>
+\* - compiler or tool must be supported by
+**cpp-build** and be able to build your code.
 
 **cpp-build** is a cross-platform *meta build system*.
 It **generates** build files used by specific compilers or tools.
