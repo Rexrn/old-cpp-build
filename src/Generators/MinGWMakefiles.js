@@ -184,14 +184,15 @@ class MinGWMakefilesGenerator extends Generator
 		if (typeof filePath == 'string')
 		{
 			let fileName = path.parse(file).name;
-			if (this.isSourceFile(fileName))
+			let fileExt = path.parse(file).ext;
+			if (this.isSourceFile(fileExt))
 			{
 				let compiler 			= this.selectCompiler(fileName, fileSettings);
 				let absolutePath 		= path.resolve( target.scriptDirectory, filePath );
-				let evaluatedSettings 	= this.evaluateSettings(settings);
+				let evaluatedSettings 	= this.evaluateSettings(fileSettings);
 
-				let actionStr = `f_${fileName}.o: "${absolutePath}"\n`;
-				actionStr += `\t${compiler} -c $(GLOBAL_INCLUDES) $(GLOBAL_LIBRARIES) ${evaluatedSettings} "${absolutePath}"`;
+				let actionStr = `${fileName}.o: ${absolutePath}\n`;
+				actionStr += `\t${compiler} -c $(GLOBAL_INCLUDES) $(GLOBAL_LIBRARIES) ${evaluatedSettings} ${absolutePath}`;
 
 				return actionStr;
 			}
@@ -220,10 +221,10 @@ class MinGWMakefilesGenerator extends Generator
 
 		return fileName.endsWith(".c") ? this.config.cCompiler : this.config.cppCompiler;
 	}
-	isSourceFile(fileName)
+	isSourceFile(extension)
 	{
-		return (fileName.endsWith(".cpp") || fileName.endsWith(".c")
-			|| fileName.endsWith(".cc") || fileName.endsWith(".cxx"));
+		let ex = extension.toLowerCase();
+		return (ex == ".cpp" || ex == ".c" || ex == ".cc" || ex == ".cxx");
 	}
 };
 
