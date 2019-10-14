@@ -112,8 +112,6 @@ workspace.targets = [ lib, app ];
 
 // Setup "app"...
 
-// App
-
 module.exports = cb.export(workspace);
 ```
 
