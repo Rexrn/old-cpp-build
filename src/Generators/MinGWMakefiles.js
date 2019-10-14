@@ -33,6 +33,10 @@ class MinGWMakefilesGenerator extends Generator
 		}
 	}
 
+	/**
+	 * Generates makefile for single target (or target group)
+	 * @param {Target} target 
+	 */
 	generateMakefile(target)
 	{
 		let fileName = this.getBuildFileNameForTarget(target.name);
@@ -57,12 +61,12 @@ class MinGWMakefilesGenerator extends Generator
 				// Prepare global includes:
 				let globalIncludesDecl = "GLOBAL_INCLUDES = ";
 				if ( Array.isArray(target.includeDirectories) )
-					globalIncludesDecl += this.prepareIncludeDirs(target.includeDirectories);
+					globalIncludesDecl += this.evaluateIncludeDirectories(target.includeDirectories);
 
 				// Prepare global libraries:
 				let globalLibsStr = "GLOBAL_LIBRARIES = ";
 				if ( Array.isArray(target.linkedLibraries) )
-					globalLibsStr += this.prepareLinkedLibraries(target.linkedLibraries);
+					globalLibsStr += this.evaluateLinkedLibraries(target.linkedLibraries);
 
 				// Compose main target string(s).
 				// For example:
@@ -121,6 +125,9 @@ class MinGWMakefilesGenerator extends Generator
 		console.log(`Build file written to: "${fileName}"`)
 	}
 
+	/**
+	 * Returns command required to build the generated files.
+	 */
 	getBuildCommand() {
 		return {
 				workingDirectory: ".",
@@ -128,12 +135,15 @@ class MinGWMakefilesGenerator extends Generator
 			};
 	}
 
+	/**
+	 * Returns build filename.
+	 */
 	getBuildFileNameForTarget(targetName)
 	{
-		return `Makefile`;
+		return "Makefile";
 	}
 
-	prepareIncludeDirs(dirs)
+	evaluateIncludeDirectories(dirs)
 	{
 		let str = " ";
 		for(let dir of dirs)
@@ -150,7 +160,7 @@ class MinGWMakefilesGenerator extends Generator
 		return str.trimRight();
 	}
 
-	prepareLinkedLibraries(libs)
+	evaluateLinkedLibraries(libs)
 	{
 		let str = "";
 		for(let lib of libs)
@@ -195,10 +205,10 @@ class MinGWMakefilesGenerator extends Generator
 	{
 		let str = "";
 		if ( Array.isArray(settings.includeDirectories) )
-			str += this.prepareIncludeDirs(target.includeDirectories);
+			str += this.evaluateIncludeDirectories(target.includeDirectories);
 
 		if ( Array.isArray(settings.linkedLibraries) )
-			str += " " + this.prepareLinkedLibraries(target.linkedLibraries);
+			str += " " + this.evaluateLinkedLibraries(target.linkedLibraries);
 		
 		return str;
 	}
@@ -208,7 +218,7 @@ class MinGWMakefilesGenerator extends Generator
 		if (settings && settings.compiler)
 			return settings.compiler;
 
-		return filePath.endsWith(".c") ? this.config.cCompiler : this.config.cppCompiler;
+		return fileName.endsWith(".c") ? this.config.cCompiler : this.config.cppCompiler;
 	}
 	isSourceFile(fileName)
 	{
