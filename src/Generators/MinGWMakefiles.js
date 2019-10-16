@@ -1,6 +1,7 @@
 const { Generator } = require('./Generator.js');
 const { TargetGroup, Target } = require("../Targets");
 const { gccFlags } = require("./GCCFlags.js");
+const { pathRequiresQuotes } = require("../Utility");
 
 const fs = require('fs');
 const path = require("path");
@@ -59,14 +60,18 @@ class MinGWMakefilesGenerator extends Generator
 			// Prepare build command:
 			{
 				// Prepare global includes:
-				let globalIncludesDecl = "GLOBAL_INCLUDES = ";
+				let globalIncludeDIrsDecl = "GLOBAL_INCLUDE_DIRS = ";
 				if ( Array.isArray(target.includeDirectories) )
-					globalIncludesDecl += this.evaluateIncludeDirectories(target.includeDirectories);
+					globalIncludeDIrsDecl += this.evaluateIncludeDirectories(target.includeDirectories);
+				
+				let globalLinkerDirsDecl = "GLOBAL_LINKER_DIRS = ";
+				if ( Array.isArray(settings.linkerDirectories) )
+					globalLinkerDirsDecl += this.evaluateLinkerDirectories(target, target.linkerDirectories);
 
 				// Prepare global libraries:
-				let globalLibsStr = "GLOBAL_LIBRARIES = ";
+				let globalLibsDecl = "GLOBAL_LIBRARIES = ";
 				if ( Array.isArray(target.linkedLibraries) )
-					globalLibsStr += this.evaluateLinkedLibraries(target.linkedLibraries);
+					globalLibsDecl += this.evaluateLinkedLibraries(target.linkedLibraries);
 
 				// Compose main target string(s).
 				// For example:
@@ -104,10 +109,11 @@ class MinGWMakefilesGenerator extends Generator
 				}
 
 				// Apply global settings to the main target build command:
-				mainTargetStr[1] += ` $(GLOBAL_INCLUDES) $(GLOBAL_LIBRARIES) -o ${target.name}`;
+				mainTargetStr[1] += ` $(GLOBAL_INCLUDE_DIRS) $(GLOBAL_LINKER_DIRS) $(GLOBAL_LIBRARIES) -o ${target.name}`;
 
 				// Global declarations:
-				fileContents += globalIncludesDecl + '\n';
+				fileContents += globalIncludeDirsDecl + '\n';
+				fileContents += globalLinkerDirsDecl + '\n';
 				fileContents += globalLibsStr + '\n';
 
 				// Main target (action label and build cmd):
@@ -143,15 +149,32 @@ class MinGWMakefilesGenerator extends Generator
 		return "Makefile";
 	}
 
-	evaluateIncludeDirectories(dirs)
+	evaluateIncludeDirectories(target, dirs)
 	{
 		let str = " ";
 		for(let dir of dirs)
 		{
 			if (typeof dir == 'string')
 			{
-				dir = path.resolve( this.config.targetScriptDirectory, dir );
+				dir = path.resolve( target.scriptDirectory, dir );
 				str += `-I"${dir}" `
+			}
+			else {
+				console.error('Invalid directory: ', lib);
+			}
+		}
+		return str.trimRight();
+	}
+
+	evaluateLinkerDirectories(dirs)
+	{
+		let str = " ";
+		for(let dir of dirs)
+		{
+			if (typeof dir == 'string')
+			{
+				dir = path.resolve( target.scriptDirectory, dir );
+				str += `-L"${dir}" `
 			}
 			else {
 				console.error('Invalid directory: ', lib);
@@ -167,7 +190,9 @@ class MinGWMakefilesGenerator extends Generator
 		{
 			if (typeof lib == 'string')
 			{
-				str += `-l"${lib}" `
+				if (pathRequiresQuotes(lib))
+					lib = "\"" + lib + "\"";
+				str += `-l${lib} `
 			}
 			else {
 				console.error('Invalid library: ', lib);
@@ -202,11 +227,14 @@ class MinGWMakefilesGenerator extends Generator
 		}
 	}
 
-	evaluateSettings(settings)
+	evaluateSettings(target, settings)
 	{
 		let str = "";
 		if ( Array.isArray(settings.includeDirectories) )
-			str += this.evaluateIncludeDirectories(target.includeDirectories);
+			str += this.evaluateIncludeDirectories(target, target.includeDirectories);
+
+		if ( Array.isArray(settings.linkerDirectories) )
+			str += this.evaluateLinkerDirectories(target, target.linkerDirectories);
 
 		if ( Array.isArray(settings.linkedLibraries) )
 			str += " " + this.evaluateLinkedLibraries(target.linkedLibraries);
