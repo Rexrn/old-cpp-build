@@ -73,14 +73,25 @@ class MinGWMakefilesGenerator extends Generator
 				if ( Array.isArray(target.linkedLibraries) )
 					globalLibsDecl += this.evaluateLinkedLibraries(target.linkedLibraries);
 
+				let libraryMode = target instanceof StaticLibrary;
+				
 				// Compose main target string(s).
 				// For example:
 				// TargetName: file1.o file2.o file3.o 		<--- str index 0
 				// 		g++ file1.o file2.o file3.o			<--- str index 1
 				let mainTargetStr = [
 						`${target.name}: `,
-						`\t${this.config.cppCompiler} `
+						''
 					];
+
+				if (libraryMode)
+				{
+					mainTargetStr = `\t${this.config.archiveTool} rvs ${target.name}.a`;
+				}
+				else
+				{
+					mainTargetStr = `\t${this.config.cppCompiler} `;
+				}
 
 				// Compose source file actions string.
 				// For example:
@@ -109,7 +120,9 @@ class MinGWMakefilesGenerator extends Generator
 				}
 
 				// Apply global settings to the main target build command:
-				mainTargetStr[1] += ` $(GLOBAL_INCLUDE_DIRS) $(GLOBAL_LINKER_DIRS) $(GLOBAL_LIBRARIES) -o ${target.name}`;
+				mainTargetStr[1] += ` $(GLOBAL_INCLUDE_DIRS) $(GLOBAL_LINKER_DIRS) $(GLOBAL_LIBRARIES)`;
+				if (!libraryMode)
+					mainTargetStr[1] += ` -o ${target.name}`;
 
 				// Global declarations:
 				fileContents += globalIncludeDirsDecl + '\n';
@@ -190,9 +203,7 @@ class MinGWMakefilesGenerator extends Generator
 		{
 			if (typeof lib == 'string')
 			{
-				if (pathRequiresQuotes(lib))
-					lib = "\"" + lib + "\"";
-				str += `-l${lib} `
+				str += ` "${lib}" `
 			}
 			else {
 				console.error('Invalid library: ', lib);
