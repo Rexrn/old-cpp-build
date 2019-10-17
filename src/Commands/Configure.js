@@ -51,7 +51,8 @@ module.exports = {
         // TODO: implement this.
         return {
 				cppCompiler: "g++",
-				cCompiler: "gcc"
+				cCompiler: "gcc",
+				archiveTool: "ar"
 			};
 	},
 	
