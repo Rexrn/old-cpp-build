@@ -9,7 +9,7 @@ module.exports = {
 	 * Performs configuration step (--configure).
 	 * @param {boolean} force - set to true if you want to remove old configuration and replace it with a default one. 
 	 */
-	configure(force = false)
+	configure(generator, force = false)
     {
         const fs = require("fs");
 
@@ -27,7 +27,7 @@ module.exports = {
             generationConfig = this.readConfigurationFile(this.configurationFileName);
         }
         else {
-            generationConfig = this.generateConfiguration();
+            generationConfig = generator.getDefaultConfiguration();
             this.saveConfigurationFile(generationConfig, this.configurationFileName);
         }
 
@@ -40,22 +40,10 @@ module.exports = {
             return false;
         }
 
+		generator.configure(generationConfig);
         return generationConfig;
 	},
-	
-	/**
-	 * Generates default configuration.
-	 */
-	generateConfiguration()
-	{
-        // TODO: implement this.
-        return {
-				cppCompiler: "g++",
-				cCompiler: "gcc",
-				archiveTool: "ar"
-			};
-	},
-	
+
 	/**
 	 * Saves generation config to a file.
 	 * @param {*} configuration 
@@ -64,7 +52,7 @@ module.exports = {
 	saveConfigurationFile(configuration, fileName)
 	{
         const fs = require("fs");
-        fs.writeFileSync(fileName, JSON.stringify(configuration));
+        fs.writeFileSync(fileName, JSON.stringify(configuration, null, "\t"));
 	},
 	
 	/**

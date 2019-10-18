@@ -8,7 +8,11 @@ class Generator
 	 * Initializes instance of the @see Generator class.
 	 * @param {*} config 
 	 */
-	constructor(config = {})
+	constructor()
+	{
+	}
+
+	configure(config)
 	{
 		this.config = config;
 	}
@@ -27,7 +31,7 @@ class Generator
 	 * @returns configuration.
 	 * @memberof Generator
 	 */
-	getDefaultConfig()
+	getDefaultConfiguration()
 	{
 		return {};
 	}

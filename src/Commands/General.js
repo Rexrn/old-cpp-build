@@ -1,8 +1,9 @@
 const cfgStep = require("./Configure.js");
 const genStep = require("./Generate.js");
 const buildStep = require("./Build.js");
-const path = require("path");
 const { TargetGroup } = require("../Targets");
+
+const path = require("path");
 
 module.exports = {
     run(args) {
@@ -12,6 +13,8 @@ module.exports = {
             cbConfig = this.parseArgs(args);
         }
         catch(e) {
+            if (e.stack)
+                console.error(e.stack);
             throw `could not parse program arguments: ${e}`;
         }
 
@@ -21,6 +24,11 @@ module.exports = {
         }
         catch(e) {
             throw `could not load and execute target script ("${cbConfig.targetScript}"): ${e}`;
+        }
+
+        if (cbConfig.generator)
+        {
+            cbConfig.generator.instance = new cbConfig.generator.impl();
         }
 
         console.log(`# Running build process`);
@@ -42,15 +50,15 @@ module.exports = {
                 // remove old configuration file
                 // generate new, default configuration
                 // save new configuration
-                cfgStep.configure(true);
+
+                cfgStep.configure(cbConfig.generator.instance, true);
                 break;
             case "generate":
                 // load configuration (call configure if config not exists)
                 // generate build files
                 {
-                    let generationConfig = cfgStep.configure();
-                    generationConfig.targetScriptDirectory = path.dirname( path.resolve(process.cwd(), cbConfig.targetScript) );
-                    let generator = new cbConfig.generator.impl(generationConfig);
+                    let generator = cbConfig.generator.instance;
+                    cfgStep.configure(generator);
                     genStep.generate(target, generator);
                 }
                 break;
@@ -58,9 +66,8 @@ module.exports = {
             case "build":
                 // TODO: load "generate_result.json"
                 {
-                    let generationConfig = cfgStep.configure();
-                    generationConfig.targetScriptDirectory = path.dirname( path.resolve(process.cwd(), cbConfig.targetScript) );
-                    let generator = new cbConfig.generator.impl(generationConfig);
+                    let generator = cbConfig.generator.instance;
+                    cfgStep.configure(generator);
                     
                     buildStep.build(target, generator);
                 }
@@ -102,52 +109,72 @@ module.exports = {
             else
                 throw `target script ("${targetFileName}") does not exist`;
 
+            let parseGeneratorHelper = (target, arg, opt = true) =>
+                {
+                    let gen = this.parseGeneratorFromArgument(arg);
+                    if (gen)
+                        target = gen;
+                    else if (!opt)
+                        throw `argument "${arg}" doesn't contain valid generator`;
+                };
             for(let i = 3; i < args.length; ++i)
             {
-                if (args[i] == '--configure' || args[i] == '-c')
+                if (args[i].startsWith('--generator') || args[i].startsWith('-G'))
+                {
+                    parseGeneratorHelper(cbConfig.generator, args[i], false);
+                }
+                else if (args[i].startsWith('--configure') || args[i].startsWith('-c'))
+                {
                     cbConfig.configure = true;
+                    parseGeneratorHelper(cbConfig.generator, args[i]);
+                }
                 else if (args[i].startsWith('--generate') || args[i].startsWith('-g'))
                 {
                     cbConfig.generate = true;
-
-                    let gen = genStep.getDefaultGenerator();
-
-                    // parse generator name
-                    {
-                        // Check has format '-g=GenName'
-                        let equalsIndex = args[i].indexOf('=');
-                        if (equalsIndex != -1)
-                        {
-                            let genName = args[i].substr(equalsIndex + 1);
-
-                            // Strip from quotes
-                            //
-                            // Note: unnecessary, node automatically strips this.
-                            // Not sure if other environments do this though.
-                            //
-                            // if (genName.startsWith("\"") && genName.endsWith("\""))
-                            //     genName = genName.substr(1, genName.length - 2);
-
-                            // Try to find the generator and validate it.
-                            gen = genStep.findGenerator(genName);
-
-                            if (!gen)
-                                throw "invalid or unsupported generator";
-                        }
-                    }
-
-                    cbConfig.generator = gen;
+                    parseGeneratorHelper(cbConfig.generator, args[i]);
                 }
-                else if (args[i] == '--build' || args[i] == '-b')
+                else if (args[i].startsWith('--build') || args[i].startsWith('-b'))
+                {
                     cbConfig.build = true;
-                else if (args[i] == '--install' || args[i] == '-i')
+                }
+                else if (args[i].startsWith('--install') || args[i].startsWith('-i'))
+                {
                     cbConfig.install = true;
+                }
                 else
                     console.warn(`Skipping unrecognised argument: "${args[i]}"`)
             }
+
+            // TODO: check if generator is necessary for specified params.
+            cbConfig.generator = cbConfig.generator || genStep.getDefaultGenerator();
         }
 
         return cbConfig;
+    },
+    parseGeneratorFromArgument(paramValue)
+    {
+        // Check has format '-param=GenName'
+        let equalsIndex = paramValue.indexOf('=');
+        if (equalsIndex != -1)
+        {
+            let genName = paramValue.substr(equalsIndex + 1);
+
+            // Strip from quotes
+            //
+            // Note: unnecessary, node automatically strips this.
+            // Not sure if other environments do this though.
+            //
+            // if (genName.startsWith("\"") && genName.endsWith("\""))
+            //     genName = genName.substr(1, genName.length - 2);
+
+            // Try to find the generator and validate it.
+            let gen = genStep.findGenerator(genName);
+
+            if (!gen)
+                throw "invalid or unsupported generator";
+
+            return gen;
+        }
     },
     import(ctx, script) {
         if (typeof ctx != "string")

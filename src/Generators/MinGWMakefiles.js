@@ -8,11 +8,15 @@ const path = require("path");
 
 class MinGWMakefilesGenerator extends Generator
 {
-	constructor(config = {})
-	{
-		super(config);
+	getDefaultConfiguration() {
+		// TODO: implement this.
+        return {
+				cppCompiler: "g++",
+				cCompiler: "gcc",
+				archiveTool: "ar",
+				makeProgram: "make"
+			};
 	}
-
 	generate(target)
 	{
 		console.log(`# Generating build file for target "${target.name}"`)
@@ -85,13 +89,9 @@ class MinGWMakefilesGenerator extends Generator
 					];
 
 				if (libraryMode)
-				{
-					mainTargetStr[1] = `\t${this.config.archiveTool} rvs ${target.name}.a `;
-				}
+					mainTargetStr[1] = `\t${this.config.archiveTool} rs ${target.name}.a `;
 				else
-				{
 					mainTargetStr[1] = `\t${this.config.cppCompiler} `;
-				}
 
 				// Compose source file actions string.
 				// For example:
