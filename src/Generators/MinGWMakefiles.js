@@ -1,5 +1,5 @@
 const { Generator } = require('./Generator.js');
-const { TargetGroup, Target } = require("../Targets");
+const { TargetGroup, Target, StaticLibrary } = require("../Targets");
 const { gccFlags } = require("./GCCFlags.js");
 const { pathRequiresQuotes } = require("../Utility");
 
@@ -60,18 +60,18 @@ class MinGWMakefilesGenerator extends Generator
 			// Prepare build command:
 			{
 				// Prepare global includes:
-				let globalIncludeDIrsDecl = "GLOBAL_INCLUDE_DIRS = ";
+				let globalIncludeDirsDecl = "GLOBAL_INCLUDE_DIRS = ";
 				if ( Array.isArray(target.includeDirectories) )
-					globalIncludeDIrsDecl += this.evaluateIncludeDirectories(target.includeDirectories);
+					globalIncludeDirsDecl += this.evaluateIncludeDirectories(target, target.includeDirectories);
 				
 				let globalLinkerDirsDecl = "GLOBAL_LINKER_DIRS = ";
-				if ( Array.isArray(settings.linkerDirectories) )
+				if ( Array.isArray(target.linkerDirectories) )
 					globalLinkerDirsDecl += this.evaluateLinkerDirectories(target, target.linkerDirectories);
 
 				// Prepare global libraries:
 				let globalLibsDecl = "GLOBAL_LIBRARIES = ";
 				if ( Array.isArray(target.linkedLibraries) )
-					globalLibsDecl += this.evaluateLinkedLibraries(target.linkedLibraries);
+					globalLibsDecl += this.evaluateLinkedLibraries(target, target.linkedLibraries);
 
 				let libraryMode = target instanceof StaticLibrary;
 				
@@ -86,11 +86,11 @@ class MinGWMakefilesGenerator extends Generator
 
 				if (libraryMode)
 				{
-					mainTargetStr = `\t${this.config.archiveTool} rvs ${target.name}.a`;
+					mainTargetStr[1] = `\t${this.config.archiveTool} rvs ${target.name}.a `;
 				}
 				else
 				{
-					mainTargetStr = `\t${this.config.cppCompiler} `;
+					mainTargetStr[1] = `\t${this.config.cppCompiler} `;
 				}
 
 				// Compose source file actions string.
@@ -120,14 +120,13 @@ class MinGWMakefilesGenerator extends Generator
 				}
 
 				// Apply global settings to the main target build command:
-				mainTargetStr[1] += ` $(GLOBAL_INCLUDE_DIRS) $(GLOBAL_LINKER_DIRS) $(GLOBAL_LIBRARIES)`;
 				if (!libraryMode)
-					mainTargetStr[1] += ` -o ${target.name}`;
+					mainTargetStr[1] += ` $(GLOBAL_INCLUDE_DIRS) $(GLOBAL_LINKER_DIRS) $(GLOBAL_LIBRARIES) -o ${target.name}`;
 
 				// Global declarations:
 				fileContents += globalIncludeDirsDecl + '\n';
 				fileContents += globalLinkerDirsDecl + '\n';
-				fileContents += globalLibsStr + '\n';
+				fileContents += globalLibsDecl + '\n';
 
 				// Main target (action label and build cmd):
 				fileContents += mainTargetStr[0] + '\n';
@@ -196,13 +195,14 @@ class MinGWMakefilesGenerator extends Generator
 		return str.trimRight();
 	}
 
-	evaluateLinkedLibraries(libs)
+	evaluateLinkedLibraries(target, libs)
 	{
 		let str = "";
 		for(let lib of libs)
 		{
 			if (typeof lib == 'string')
 			{
+				lib = path.resolve( target.scriptDirectory, lib );
 				str += ` "${lib}" `
 			}
 			else {
@@ -225,10 +225,10 @@ class MinGWMakefilesGenerator extends Generator
 			{
 				let compiler 			= this.selectCompiler(fileName, fileSettings);
 				let absolutePath 		= path.resolve( target.scriptDirectory, filePath );
-				let evaluatedSettings 	= this.evaluateSettings(fileSettings);
+				let evaluatedSettings 	= this.evaluateSettings(target, fileSettings);
 
 				let actionStr = `${fileName}.o: ${absolutePath}\n`;
-				actionStr += `\t${compiler} -c $(GLOBAL_INCLUDES) $(GLOBAL_LIBRARIES) ${evaluatedSettings} ${absolutePath}`;
+				actionStr += `\t${compiler} -c -std=c++17 $(GLOBAL_INCLUDE_DIRS) $(GLOBAL_LINKER_DIRS) ${evaluatedSettings} ${absolutePath}`;
 
 				return actionStr;
 			}
@@ -248,7 +248,7 @@ class MinGWMakefilesGenerator extends Generator
 			str += this.evaluateLinkerDirectories(target, target.linkerDirectories);
 
 		if ( Array.isArray(settings.linkedLibraries) )
-			str += " " + this.evaluateLinkedLibraries(target.linkedLibraries);
+			str += " " + this.evaluateLinkedLibraries(target, target.linkedLibraries);
 		
 		return str;
 	}

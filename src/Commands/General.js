@@ -148,7 +148,7 @@ module.exports = {
 
         return cbConfig;
     },
-    exportFromTemplate(targetTemplate) {
+    export(targetTemplate) {
         return targetTemplate;
     }
 };
