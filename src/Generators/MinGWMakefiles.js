@@ -1,7 +1,6 @@
 const { Generator } = require('./Generator.js');
 const { TargetGroup, Target, StaticLibrary } = require("../Targets");
 const { gccFlags } = require("./GCCFlags.js");
-const { pathRequiresQuotes } = require("../Utility");
 
 const fs = require('fs');
 const path = require("path");
