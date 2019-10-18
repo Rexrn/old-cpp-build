@@ -1,16 +1,61 @@
+/**
+ * Generates build files for specified target.
+ * @class Generator
+ */
 class Generator
 {
-	constructor(config = {}) {
+	/**
+	 * Initializes instance of the @see Generator class.
+	 * @param {*} config 
+	 */
+	constructor(config = {})
+	{
 		this.config = config;
 	}
-	generate(target) {}
-	getBuildCommand() {
+
+	/**
+	 * Generates build files for specified target.
+	 * @param {Target} target 
+	 */
+	generate(target)
+	{
+
+	}
+
+	/**
+	 * Generates and returns default configuration.
+	 * @returns configuration.
+	 * @memberof Generator
+	 */
+	getDefaultConfig()
+	{
+		return {};
+	}
+
+	/**
+	 * Returns build command to start build script.
+	 * @returns build command and required working directory.
+	 * @memberof Generator
+	 */
+	getBuildCommand()
+	{
 		return {
 				workingDirectory: ".",
 				command: 'echo Nothing to do'
 			};
 	}
-	getBuildFileNameForTarget(targetName) { return targetName; }
+
+
+	/**
+	 * Returns main build file name for specified target name.
+	 * @param {*} targetName
+	 * @returns main build file name.
+	 * @memberof Generator
+	 */
+	getBuildFileNameForTarget(targetName)
+	{
+		return targetName;
+	}
 };
 
 module.exports = { Generator };
