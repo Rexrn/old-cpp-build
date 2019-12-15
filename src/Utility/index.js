@@ -1,8 +1,7 @@
 let util = {};
 
 Object.assign(util,
-		require('./Build.js'),
-		require('./Path.js')
+		require('./Build.js')
 	);
 
 module.exports = util;
