@@ -9,7 +9,7 @@ Object.assign(cppBuild,
 			util: require('./Utility'),
 
 			export(targetTemplate) {
-				targetTemplate.scriptDirectory = module.parent.filename;
+				targetTemplate.scriptDirectory = module.parent.path;
 				return targetTemplate;
 			}
 		}

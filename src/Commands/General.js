@@ -20,7 +20,7 @@ module.exports = {
 
         let target = {};
         try {
-            target = this.import( process.cwd(), cbConfig.targetScript );
+            target = require( path.resolve(process.cwd(), cbConfig.targetScript) );
         }
         catch(e) {
             throw `could not load and execute target script ("${cbConfig.targetScript}"): ${e}`;

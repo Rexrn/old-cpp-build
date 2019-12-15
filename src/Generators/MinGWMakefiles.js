@@ -16,11 +16,15 @@ class MinGWMakefilesGenerator extends Generator
 				makeProgram: "make"
 			};
 	}
-	generate(target)
+	generate(target, baseDir = "")
 	{
 		console.log(`# Generating build file for target "${target.name}"`)
 
-		this.generateMakefile(target);
+		let baseDirectory = baseDir;
+		if (target && target.scriptDirectory)
+			baseDirectory = target.scriptDirectory;
+
+		this.generateMakefile(target, baseDirectory);
 
 		if (target instanceof TargetGroup)
 		{
@@ -31,7 +35,7 @@ class MinGWMakefilesGenerator extends Generator
 					fs.mkdirSync( child.name );
 				
 				process.chdir( child.name );
-				this.generate(child);
+				this.generate(child, baseDirectory);
 				process.chdir(prevWorkingDir);
 			}
 		}
@@ -41,7 +45,7 @@ class MinGWMakefilesGenerator extends Generator
 	 * Generates makefile for single target (or target group)
 	 * @param {Target} target 
 	 */
-	generateMakefile(target)
+	generateMakefile(target, baseDirectory = "")
 	{
 		let fileName = this.getBuildFileNameForTarget(target.name);
 		let fileContents = "";
@@ -65,16 +69,16 @@ class MinGWMakefilesGenerator extends Generator
 				// Prepare global includes:
 				let globalIncludeDirsDecl = "GLOBAL_INCLUDE_DIRS = ";
 				if ( Array.isArray(target.includeDirectories) )
-					globalIncludeDirsDecl += this.evaluateIncludeDirectories(target, target.includeDirectories);
+					globalIncludeDirsDecl += this.evaluateIncludeDirectories(target.includeDirectories, baseDirectory);
 				
 				let globalLinkerDirsDecl = "GLOBAL_LINKER_DIRS = ";
 				if ( Array.isArray(target.linkerDirectories) )
-					globalLinkerDirsDecl += this.evaluateLinkerDirectories(target, target.linkerDirectories);
+					globalLinkerDirsDecl += this.evaluateLinkerDirectories(target.linkerDirectories, baseDirectory);
 
 				// Prepare global libraries:
 				let globalLibsDecl = "GLOBAL_LIBRARIES = ";
 				if ( Array.isArray(target.linkedLibraries) )
-					globalLibsDecl += this.evaluateLinkedLibraries(target, target.linkedLibraries);
+					globalLibsDecl += this.evaluateLinkedLibraries(target.linkedLibraries, baseDirectory);
 
 				let libraryMode = target instanceof StaticLibrary;
 				
@@ -102,7 +106,7 @@ class MinGWMakefilesGenerator extends Generator
 				let fileActionsStr = "";
 				for(let file of target.files)
 				{
-					let fileAction = this.prepareFileAction(target, file);
+					let fileAction = this.prepareFileAction(file, baseDirectory);
 					// Action generated successfully?
 					if (fileAction)
 					{
@@ -160,14 +164,14 @@ class MinGWMakefilesGenerator extends Generator
 		return "Makefile";
 	}
 
-	evaluateIncludeDirectories(target, dirs)
+	evaluateIncludeDirectories(dirs, baseDirectory = "")
 	{
 		let str = " ";
 		for(let dir of dirs)
 		{
 			if (typeof dir == 'string')
 			{
-				dir = path.resolve( target.scriptDirectory, dir );
+				dir = path.resolve( baseDirectory, dir );
 				str += `-I"${dir}" `
 			}
 			else {
@@ -177,14 +181,14 @@ class MinGWMakefilesGenerator extends Generator
 		return str.trimRight();
 	}
 
-	evaluateLinkerDirectories(dirs)
+	evaluateLinkerDirectories(dirs, baseDirectory = "")
 	{
 		let str = " ";
 		for(let dir of dirs)
 		{
 			if (typeof dir == 'string')
 			{
-				dir = path.resolve( target.scriptDirectory, dir );
+				dir = path.resolve( baseDirectory, dir );
 				str += `-L"${dir}" `
 			}
 			else {
@@ -194,14 +198,14 @@ class MinGWMakefilesGenerator extends Generator
 		return str.trimRight();
 	}
 
-	evaluateLinkedLibraries(target, libs)
+	evaluateLinkedLibraries(libs, baseDirectory = "")
 	{
 		let str = "";
 		for(let lib of libs)
 		{
 			if (typeof lib == 'string')
 			{
-				lib = path.resolve( target.scriptDirectory, lib );
+				lib = path.resolve( baseDirectory, lib );
 				str += ` "${lib}" `
 			}
 			else {
@@ -211,7 +215,7 @@ class MinGWMakefilesGenerator extends Generator
 		return str.trimRight();
 	}
 
-	prepareFileAction(target, file)
+	prepareFileAction(file, baseDirectory = "")
 	{
 		let filePath = file.path || file;
 		let fileSettings = file.settings || {};
@@ -223,8 +227,8 @@ class MinGWMakefilesGenerator extends Generator
 			if (this.isSourceFile(fileExt))
 			{
 				let compiler 			= this.selectCompiler(fileName, fileSettings);
-				let absolutePath 		= path.resolve( target.scriptDirectory, filePath );
-				let evaluatedSettings 	= this.evaluateSettings(target, fileSettings);
+				let absolutePath 		= path.resolve( baseDirectory, filePath );
+				let evaluatedSettings 	= this.evaluateSettings(fileSettings, baseDirectory);
 
 				let actionStr = `${fileName}.o: ${absolutePath}\n`;
 				actionStr += `\t${compiler} -c -std=c++17 $(GLOBAL_INCLUDE_DIRS) $(GLOBAL_LINKER_DIRS) ${evaluatedSettings} ${absolutePath}`;
@@ -237,17 +241,17 @@ class MinGWMakefilesGenerator extends Generator
 		}
 	}
 
-	evaluateSettings(target, settings)
+	evaluateSettings(settings, baseDirectory = "")
 	{
 		let str = "";
 		if ( Array.isArray(settings.includeDirectories) )
-			str += this.evaluateIncludeDirectories(target, target.includeDirectories);
+			str += this.evaluateIncludeDirectories(settings.includeDirectories, baseDirectory);
 
 		if ( Array.isArray(settings.linkerDirectories) )
-			str += this.evaluateLinkerDirectories(target, target.linkerDirectories);
+			str += this.evaluateLinkerDirectories(settings.linkerDirectories, baseDirectory);
 
 		if ( Array.isArray(settings.linkedLibraries) )
-			str += " " + this.evaluateLinkedLibraries(target, target.linkedLibraries);
+			str += " " + this.evaluateLinkedLibraries(settings.linkedLibraries, baseDirectory);
 		
 		return str;
 	}
