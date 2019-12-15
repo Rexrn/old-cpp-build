@@ -6,7 +6,12 @@ Object.assign(cppBuild,
 		require('./Commands'),
 		require('./Common'),
 		{
-			util: require('./Utility')
+			util: require('./Utility'),
+
+			export(targetTemplate) {
+				targetTemplate.scriptDirectory = module.parent.filename;
+				return targetTemplate;
+			}
 		}
 	);
 

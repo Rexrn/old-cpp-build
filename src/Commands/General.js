@@ -175,31 +175,6 @@ module.exports = {
 
             return gen;
         }
-    },
-    import(ctx, script) {
-        if (typeof ctx != "string")
-            ctx = ctx.scriptDirectory;
-        if (typeof ctx != "string")
-            throw "invalid script import context";
-
-        let scriptPath = path.resolve(ctx, script);
-        let scriptDir = path.parse(scriptPath).dir;
-        let loadedScript = require(scriptPath);
-
-        let applyScriptDir = (target, directory) =>
-            {
-                if (!target.scriptDirectory)
-                    target.scriptDirectory = directory;
-                if (target instanceof TargetGroup)
-                {
-                    for(let child of target.targets)
-                        applyScriptDir(child, directory);
-                }
-            };
-        applyScriptDir(loadedScript, scriptDir);
-        return loadedScript;
-    },
-    export(targetTemplate) {
-        return targetTemplate;
     }
+   
 };
