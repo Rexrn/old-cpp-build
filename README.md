@@ -106,7 +106,7 @@ let workspace = new cb.TargetGroup("GameWorkspace");
 let lib = new cb.StaticLibrary("GameEngine");
 let app = new cb.Application("Game");
 app.addDependency(lib);
-workspace.targets = [ lib, app ];
+workspace.children = [ lib, app ];
 
 // Setup "lib"...
 
@@ -133,7 +133,7 @@ testApp.on("configured", (cfg) =>
 		{
 			// Load google test:
 			let gtestWks = require(cfg["gtest.root"] + "/workspace.js");
-			let gtestProj = gtestWks.targets.find( t => t.name == "gtest" );
+			let gtestProj = gtestWks.children.find( t => t.name == "gtest" );
 
 			// Add google test as dependency:
 			if (gtestProj) {
@@ -151,7 +151,7 @@ testApp.on("configured", (cfg) =>
 let wks = new cb.TargetGroup("MyWorkspace");
 let app = new cb.Application("MyApplication");
 let lib = new cb.StaticLibrary("MyLibrary");
-wks.targets = [ app, lib ];
+wks.children = [ app, lib ];
 
 app.on("install", (ctx) =>
 		{

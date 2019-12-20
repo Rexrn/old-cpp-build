@@ -9,7 +9,7 @@ class TargetGroup extends Target
 		if (!Array.isArray(targets))
 			throw "targets must be an array";
 
-		this.targets = targets;
+		this.children = targets;
 	}
 };
 

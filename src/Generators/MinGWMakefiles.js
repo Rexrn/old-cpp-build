@@ -29,7 +29,7 @@ class MinGWMakefilesGenerator extends Generator
 		if (target instanceof TargetGroup)
 		{
 			let prevWorkingDir = process.cwd();
-			for(let child of target.targets)
+			for(let child of target.children)
 			{
 				if (!fs.existsSync(child.name))
 					fs.mkdirSync( child.name );
@@ -54,7 +54,7 @@ class MinGWMakefilesGenerator extends Generator
 		{
 			let subtargets = "";
 
-			for(let child of target.targets)
+			for(let child of target.children)
 			{
 				subtargets += `subtarget_${child.name} `;
 				fileContents += `subtarget_${child.name}: ${child.name}/Makefile\n`;
