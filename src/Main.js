@@ -8,9 +8,9 @@ Object.assign(cppBuild,
 		{
 			util: require('./Utility'),
 
-			export(targetTemplate) {
-				targetTemplate.scriptDirectory = module.parent.path;
-				return targetTemplate;
+			export(context, targetTemplate) {
+				targetTemplate.scriptDirectory = context.path;
+				context.exports = targetTemplate;
 			}
 		}
 	);
