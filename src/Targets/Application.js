@@ -1,9 +1,9 @@
-const { Target } = require('./Target.js');
+const { Target, TargetType } = require('./Target.js');
 
 class Application extends Target
 {
 	constructor(name = "Application") {
-		super(name);
+		super(name, TargetType.Application);
 	}
 };
 

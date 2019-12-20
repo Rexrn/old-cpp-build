@@ -1,9 +1,9 @@
-const { Target } = require('./Target.js');
+const { Target, TargetType } = require('./Target.js');
 
 class StaticLibrary extends Target
 {
 	constructor(name = "StaticLibrary") {
-		super(name);
+		super(name, TargetType.StaticLibrary);
 	}
 };
 

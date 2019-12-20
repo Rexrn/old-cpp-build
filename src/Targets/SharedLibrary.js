@@ -1,9 +1,9 @@
-const { Target } = require('./Target.js');
+const { Target, TargetType } = require('./Target.js');
 
 class SharedLibrary extends Target
 {
 	constructor(name = "SharedLibrary") {
-		super(name);
+		super(name, TargetType.SharedLibrary);
 	}
 };
 

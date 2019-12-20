@@ -1,6 +1,6 @@
-const { Target } = require('./Target.js');
+const { BuildContext } = require('./BuildContext.js');
 
-class TargetGroup extends Target
+class TargetGroup extends BuildContext
 {
 	constructor(name = "TargetGroup", targets = [])
 	{
@@ -9,7 +9,7 @@ class TargetGroup extends Target
 		if (!Array.isArray(targets))
 			throw "targets must be an array";
 
-		this.children = targets;
+		this.targets = targets;
 	}
 };
 

@@ -1,5 +1,5 @@
 const { Generator } = require('./Generator.js');
-const { TargetGroup, Target, StaticLibrary } = require("../Targets");
+const { TargetGroup, Target, TargetType } = require("../Targets");
 const { gccFlags } = require("./GCCFlags.js");
 
 const fs = require('fs');
@@ -29,7 +29,7 @@ class MinGWMakefilesGenerator extends Generator
 		if (target instanceof TargetGroup)
 		{
 			let prevWorkingDir = process.cwd();
-			for(let child of target.children)
+			for(let child of target.targets)
 			{
 				if (!fs.existsSync(child.name))
 					fs.mkdirSync( child.name );
@@ -54,7 +54,7 @@ class MinGWMakefilesGenerator extends Generator
 		{
 			let subtargets = "";
 
-			for(let child of target.children)
+			for(let child of target.targets)
 			{
 				subtargets += `subtarget_${child.name} `;
 				fileContents += `subtarget_${child.name}: ${child.name}/Makefile\n`;
@@ -62,7 +62,7 @@ class MinGWMakefilesGenerator extends Generator
 			}
 			fileContents = `all: ${subtargets}\n${fileContents}`;
 		}
-		else if (target instanceof Target)
+		else if (target)
 		{
 			// Prepare build command:
 			{
@@ -80,7 +80,7 @@ class MinGWMakefilesGenerator extends Generator
 				if ( Array.isArray(target.linkedLibraries) )
 					globalLibsDecl += this.evaluateLinkedLibraries(target.linkedLibraries, baseDirectory);
 
-				let libraryMode = target instanceof StaticLibrary;
+				let libraryMode = target.type == TargetType.StaticLibrary;
 				
 				// Compose main target string(s).
 				// For example:

@@ -1,6 +1,7 @@
 let targets = {};
 
 Object.assign(targets,
+		require('./BuildContext.js'),
 		require('./Target.js'),
 		require('./Application.js'),
 		require('./StaticLibrary.js'),
