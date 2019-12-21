@@ -36,21 +36,20 @@ Create `Project.js` in main project folder:
 ```js
 const cb = require("cpp-build");
 
-let app = new cb.Application("ConsoleApp");
-app.settings.append(
-		{
-			language: "C++17",
-			includeDirectories: [ "include" ],
-			files: [
-					"include/PrintHello.hpp",
-					"src/PrintHello.cpp",
-					"src/Main.cpp"
-				]
-		}
-	);
+let app = {
+	name: "ConsoleApp",
+	language: "C++17",
+	includeDirectories: [ "include" ],
+	files: [
+		"include/PrintHello.hpp",
+		"src/PrintHello.cpp",
+		"src/Main.cpp"
+	]
+};
 
 // Export application as a target to build.
-module.exports = cb.export(app);
+// NOTE: first argument has to be "module"!
+cb.export(module, app);
 ```
 
 Following project structure assumed:
@@ -105,14 +104,14 @@ let workspace = new cb.TargetGroup("GameWorkspace");
 
 let lib = new cb.StaticLibrary("GameEngine");
 let app = new cb.Application("Game");
-app.addDependency(lib);
+app.link(lib);
 workspace.targets = [ lib, app ];
 
 // Setup "lib"...
 
 // Setup "app"...
 
-module.exports = cb.export(workspace);
+cb.export(module, workspace);
 ```
 
 ### Load external code
@@ -124,8 +123,8 @@ let testApp = new cb.Application("Test");
 
 // Setup configuration options
 testApp.configuration = {
-		"gtest.root": ""
-	};
+	"gtest.root": ""
+};
 
 // To link external libraries we have
 // to wait until target is configured.
@@ -137,7 +136,7 @@ testApp.on("configured", (cfg) =>
 
 			// Add google test as dependency:
 			if (gtestProj) {
-				testApp.addDependency(googleTestProject);
+				testApp.link(googleTestProject);
 			}
 			else
 				throw 'google test library project not found.';
@@ -153,29 +152,21 @@ let app = new cb.Application("MyApplication");
 let lib = new cb.StaticLibrary("MyLibrary");
 wks.targets = [ app, lib ];
 
-app.on("install", (ctx) =>
-		{
-			// Context contains:
-			// - build output directory
-			// - install base directory
-			
-			// Installs (recursively) all files from:
-			//   build_output_dir/bin/
-			// to:
-			//   install_base_dir/bin/cfgName/
-			cb.install(ctx, "bin/**", `bin/${ctx.cfgName}`);
-		}
-	);
+app.installs = [		
+	// Installs (recursively) all files from:
+	//   build_output_dir/bin/
+	// to:
+	//   install_base_dir/bin/cfgName/
+	{ from: "bin/**", to: `bin/${cb.cfgName}` }
+];
 
 
-lib.on("install", (ctx) =>
-		{
-			cb.install(ctx, "include/**", "include");
-			cb.install(ctx, "lib/**", `lib/${ctx.cfgName}`);
-			cb.install(ctx, "bin/**", `bin/${ctx.cfgName}`);
-			cb.install(ctx, "docs/**", "docs");
-		}
-	);
+lib.installs = [
+	{ from: "include/**", to: "include" },
+	{ from: "lib/**", to: `lib/${cb.cfgName}` },
+	{ from: "bin/**", to: `bin/${cb.cfgName}` },
+	{ from: "docs/**", to: "docs" }
+];
 
-module.exports = cb.export(wks);
+cb.export(module, wks);
 ```
