@@ -1,1 +1,0 @@
-node %~dp0src/Runner.js %*
